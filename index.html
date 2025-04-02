@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>中国省级行政区划地图</title>
+
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif;
+    }
+    
+    #header {
+      height: 80px;
+      background: #2c3e50;
+      color: white;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    #container {
+      display: flex;
+      height: calc(100vh - 80px);
+    }
+    
+    #mapView {
+      flex: 3;
+      position: relative;
+    }
+    
+    #sidebar {
+      flex: 1;
+      background: #f5f5f5;
+      padding: 15px;
+      overflow-y: auto;
+      box-shadow: -2px 0 4px rgba(0,0,0,0.1);
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    
+    .widget-container {
+      margin-bottom: 15px;
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .widget-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+  </style>
+
+  <!-- Load Calcite components from CDN -->
+  <script type="module" src="https://js.arcgis.com/calcite-components/3.0.3/calcite.esm.js"></script>
+
+  <!-- Load the ArcGIS Maps SDK for JavaScript from CDN -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.32/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.32/"></script>
+
+  <!-- Load Map components from CDN-->
+  <script type="module" src="https://js.arcgis.com/map-components/4.32/arcgis-map-components.esm.js"></script>
+</head>
+
+<body>
+  <div id="header">
+    <div>
+      <div class="title">中国省级行政区划地图</div>
+      <div class="subtitle">中国省级行政区划信息</div>
+    </div>
+    <div id="searchWidget"></div>
+  </div>
+  
+  <div id="container">
+    <div id="mapView">
+      <arcgis-map item-id="237b9584339446a0b56317b5962a4971"></arcgis-map>
+    </div>
+    <div id="sidebar">
+      <div class="widget-container">
+        <div class="widget-title">底图库</div>
+        <div id="basemapGallery"></div>
+      </div>
+      <div class="widget-container">
+        <div class="widget-title">图层列表</div>
+        <div id="layerList"></div>
+      </div>
+      <div class="widget-container">
+        <div class="widget-title">图例</div>
+        <div id="legend"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    require([
+      "esri/widgets/ScaleBar",
+      "esri/widgets/Legend",
+      "esri/widgets/Search",
+      "esri/widgets/LayerList",
+      "esri/widgets/BasemapGallery",
+      "esri/layers/FeatureLayer"
+    ], function(
+      ScaleBar, Legend, Search, LayerList, BasemapGallery, FeatureLayer
+    ) {
+      
+      const arcgisMap = document.querySelector("arcgis-map");
+      
+      arcgisMap.addEventListener("arcgisViewReadyChange", () => {
+        const view = arcgisMap.view;
+        
+        // 添加省级行政区划图层
+        const provinceLayer = new FeatureLayer({
+          url: "https://www.geosceneonline.cn/server/rest/services/Hosted/省5/FeatureServer/0",
+          title: "中国省级行政区划",
+          popupTemplate: {
+            title: "{省名}",
+            content: [{
+              type: "fields",
+              fieldInfos: [
+                { fieldName: "省名", label: "省份名称" },
+                { fieldName: "面积", label: "面积(平方公里)", format: { digitSeparator: true } },
+                { fieldName: "人口", label: "人口(万人)", format: { digitSeparator: true } }
+              ]
+            }]
+          }
+        });
+        
+        view.map.add(provinceLayer);
+        
+        // 添加比例尺
+        const scaleBar = new ScaleBar({
+          view: view,
+          unit: "metric"
+        });
+        view.ui.add(scaleBar, {
+          position: "bottom-left"
+        });
+        
+        // 添加图例
+        const legend = new Legend({
+          view: view,
+          container: "legend"
+        });
+        
+        // 添加搜索框
+        const searchWidget = new Search({
+          view: view,
+          container: "searchWidget",
+          popupEnabled: false
+        });
+        
+        // 添加图层列表
+        const layerList = new LayerList({
+          view: view,
+          container: "layerList"
+        });
+        
+        // 添加底图库
+        const basemapGallery = new BasemapGallery({
+          view: view,
+          container: "basemapGallery"
+        });
+        
+        // 设置初始视图
+        view.goTo({
+          center: [104.1954, 35.8617], // 中国中心
+          zoom: 4
+        });
+      });
+    });
+  </script>
+</body>
+</html>
